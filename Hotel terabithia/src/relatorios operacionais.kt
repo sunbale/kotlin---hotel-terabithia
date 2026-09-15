@@ -1,0 +1,6 @@
+package Hotel
+
+fun relatoriosOperacionais(){
+
+
+}
