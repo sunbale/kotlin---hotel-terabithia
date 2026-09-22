@@ -1,9 +1,12 @@
 package Hotel
-data class Local (
+
+import kotlin.math.ceil
+import kotlin.math.floor
+
+data class Evento (
     val convidados: Int,
-    val auditório: String,
-    var cadeirasExtras: Int,
-    val lugares: Int,
+    val auditorio: String,
+    val cadeirasExtras: Int,
     val dia: String,
     val horaInicial: Int,
     val duracao: Int,
@@ -15,43 +18,212 @@ data class Local (
     val custoTotal: Double
 
 )
-val agendaEventos = mutableListOf<Local>()
-var duracao = readln().toInt()
-fun eventos(){
+data class ResultadoAuditorio(
+    val nome: String,
+    val cadeirasExtras: Int
+)
+val agendaEventos = mutableListOf<Evento>()
 
-    println("===AUDITÓRIO DE EVENTOS===")
-    println("Informe o número de convidados?")
+fun eventos() {
+
+    println("=== EVENTOS ===")
+
+
+    // PARTE A
+    println("Informe o número de convidados:")
     val convidados = readln().toIntOrNull()
-    println("ESCOLHA UM AUDITÓRIO")
-    println("1 . AUDITÓRIO LARANJA")
-    println("2. AUDITÓRIO COLORADO")
+
+    if (convidados == null || convidados < 0 || convidados > 350) {
+        println("Número de convidados inválido")
+        return
+    }
+
+    val resultadoAuditorio = escolherAuditorio(convidados)
+
+    val auditorio = resultadoAuditorio.nome
+    val cadeirasExtras = resultadoAuditorio.cadeirasExtras
+
+
+    println("Auditório selecionado: $auditorio")
+    println("Cadeiras adicionais: $cadeirasExtras")
+
+
+    // PARTE B
+    println("Informe o dia da semana:")
+    val dia = readln().trim().lowercase()
+
+    println("Informe a hora inicial:")
+    val horaInicial = readln().toIntOrNull()
+
+    if (horaInicial == null) {
+        println("Horário inválido")
+        return
+    }
+
+    println("Informe a duração do evento em horas:")
+    val duracao = readln().toIntOrNull()
+
+    if (duracao == null) {
+        println("Duração inválida")
+        return
+    }
+
+    val horaFinal = horaInicial + duracao
+
+    val disponivel = verificarDisponibilidade(
+        dia,
+        horaInicial,
+        duracao
+    )
+
+    if (disponivel) {
+        val conflito = verificarConflito(
+            auditorio,
+            dia,
+            horaInicial,
+            horaFinal
+        )
+
+        if (conflito) {
+            println("O auditório já está ocupado nesse horário.")
+            return
+        }
+
+
+        println("Auditório disponível")
+
+        println("Informe o nome da empresa:")
+        val empresa = readln()
+
+        println(
+            "Auditório reservado para $empresa: " +
+                    "$dia às ${horaInicial}hs"
+        )
+
+        val quantidadeGarcons = calcularGarcons(
+            convidados,
+            duracao
+        )
+
+        val custoGarcons = calcularCustoGarcons(
+            quantidadeGarcons,
+            duracao
+        )
+
+
+        println("Quantidade de garçons: $quantidadeGarcons")
+        println("Custo dos garçons: R$ %.2f".format(custoGarcons))
+        val custoBuffet = buffet(convidados)
+        val custoTotal = custoGarcons + custoBuffet
+        relatorio(
+            empresa,
+            auditorio,
+            cadeirasExtras,
+            dia,
+            horaInicial,
+            horaFinal,
+            convidados,
+            duracao,
+            quantidadeGarcons,
+            custoGarcons,
+            custoBuffet,
+            custoTotal
+        )
+        val confirmado = confirmarReserva()
+        if (confirmado) {
+
+            val novoEvento = Evento(
+                convidados = convidados,
+                auditorio = auditorio,
+                cadeirasExtras = cadeirasExtras,
+                dia = dia,
+                horaInicial = horaInicial,
+                duracao = duracao,
+                horaFinal = horaFinal,
+                empresa = empresa,
+                quantidadeGarcons = quantidadeGarcons,
+                custoDeGarcons = custoGarcons,
+                custoBuffet = custoBuffet,
+                custoTotal = custoTotal
+            )
+
+            agendaEventos.add(novoEvento)
+            println("Evento salvo na agenda!")
+        }
+
+    } else {
+
+        println("Auditório indisponível")
+    }
+
+
+}
+fun escolherAuditorio(convidados: Int): ResultadoAuditorio {
+
+    if (convidados <= 150) {
+        return ResultadoAuditorio(
+            nome = "Laranja",
+            cadeirasExtras = 0
+        )
+    }
+
+    if (convidados <= 220) {
+        return ResultadoAuditorio(
+            nome = "Laranja",
+            cadeirasExtras = convidados - 150
+        )
+    }
+
+    return ResultadoAuditorio(
+        nome = "Colorado",
+        cadeirasExtras = 0
+    )
 }
 
-fun reserva(){
-    println("===AGENDA==")
-println("Informe o dia da semana:")
-    val diaDaSemana = readln()
-    println("Informe o horário:")
-    var horario = readln()
-    println("Informe a duração:")
-    duracao = readln().toInt()
-    println("Confirmar agenda?")
-    val confirmacao = readln().toCharArray()
-    println("Informe o nome da empresa")
-    println("Confirma agenda?")
-    val verificacao = readln()
+fun verificarDisponibilidade(
+    dia: String,
+    horaInicial: Int,
+    duracao: Int
+): Boolean {
 
-    println("Auditório reservado para (nome da empresa): (dia da semana) às (horas)hs")
+    if (duracao < 1 || duracao > 12) {
+        return false
+    }
+
+    val horaFinal = horaInicial + duracao
+
+    if (
+        dia == "segunda" ||
+        dia == "terca" ||
+        dia == "quarta" ||
+        dia == "quinta" ||
+        dia == "sexta"
+    ) {
+
+        return horaInicial >= 7 && horaFinal <= 23
+
+    } else if (
+        dia == "sabado" ||
+        dia == "domingo"
+    ) {
+
+        return horaInicial >= 7 && horaFinal <= 15
+    }
+
+    return false
 }
- fun equipeDeGarcom (){
-     println("Informe o nome da empresa:")
-     var nomeEmpresa = readln()
-     var base = 0
-     var reforco = 0
-     var totalGarcom = (base + reforco)
-     val horaGarcom = 10.50
-     var calculoCustoGarcom = (totalGarcom * duracao * horaGarcom)
 
+
+
+     fun calcularGarcons (convidados: Int, duracao: Int): Int{
+
+         val garcomBase = ceil(convidados / 12.0).toInt()
+
+         val garconsExtra = floor(duracao / 2.0).toInt()
+
+         val totalGarcons = garcomBase + garconsExtra
+
+         return totalGarcons
 
 //Base: `ceil(convidados / 12)`
 //- Reforço por duração: `floor(duração / 2)`
@@ -60,49 +232,117 @@ println("Informe o dia da semana:")
      //Cálculo:
      //- `custo_garcons = total_garcons × duração × 10,50`
  }
-fun buffet (){
-    println("===BUFFET===")
-   val cafe = 0.80
-    val agua = 0.40
-    val salgado = 34.0
-}
-fun relatorio () {
-    println("===RELATORIO==")
-    //Exibir relatório técnico:
-    //
-    //- auditório, empresa, data, hora início/fim
-    //- convidados, garçons, duração
-    //- custo garçons, custo buffet, total geral
+fun calcularCustoGarcons(
+    quantidadeGarcons: Int,
+    duracao: Int
+): Double {
+
+    return quantidadeGarcons * duracao * 10.50
+
 }
 
-// Exemplo de execução formatado
-//[Eventos]
-//Convidados: 192
-//Auditório selecionado: Laranja (42 cadeiras adicionais)
-//
-//Dia: segunda
-//Hora inicial: 13
-//Duração: 8
-//Empresa: Lojas Transilvânia
-//Status: Auditório reservado.
-//
-//Garçons necessários: 20
-//Custo com garçons: R$ 1.680,00
-//
-//Buffet:
-//Café: 38,4 L
-//Água: 96,0 L
-//Salgados: 1344 un
-//Custo buffet: R$ 540,96
-//
-//Total do evento: R$ 2.220,96
-fun confirmarReserva(){
-    println("Confirmar reserva?")
-    val resposta = readln()
-    when (resposta.trim().uppercase()) {
-        "S" -> ("RESERVA EFETUADA COM SUCESSO")
-        "N" -> return
+fun buffet (convidados: Int): Double{
+    println("===BUFFET===")
+   val cafe = convidados * 0.2
+    val agua = convidados * 0.5
+    val salgados = convidados *  7
+    val custoCafe = cafe * 0.80
+    val custoAgua = agua * 0.40
+    val custoSalgados = (salgados / 100.0) * 34.0
+    val custoTotal = custoCafe + custoAgua + custoSalgados
+    println("Café %.2f litros".format(cafe))
+    println("Água %.2f litros".format(agua))
+    println("Salgados: $salgados unidades")
+    println("Custo do café R$ %.2f".format(custoCafe))
+    println("Custo da água R$ %.2f".format(custoAgua))
+    println("Custo dos salgados R$ %.2f".format(custoSalgados))
+
+    println("Custo total do Buffet R$ %.2f".format(custoTotal))
+
+    return custoTotal
+}
+fun relatorio(
+    empresa: String,
+    auditorio: String,
+    cadeirasExtras: Int,
+    dia: String,
+    horaInicial: Int,
+    horaFinal: Int,
+    convidados: Int,
+    duracao: Int,
+    quantidadeGarcons: Int,
+    custoGarcons: Double,
+    custoBuffet: Double,
+    custoTotal: Double
+) {
+    println("===RELATORIO==")
+
+    println("Empresa: $empresa")
+    println("Auditório: $auditorio")
+    println("Cadeiras adicionais: $cadeirasExtras")
+    println("Dia: $dia")
+    println("Horário inicial: ${horaInicial}hs")
+    println("Horário final: ${horaFinal}hs")
+    println("Quantidade de convidados: $convidados")
+    println("Duração: $duracao horas")
+    println("Quantidade de garçons: $quantidadeGarcons")
+
+    println("Custo dos garçons: R$ %.2f".format(custoGarcons))
+    println("Custo do buffet: R$ %.2f".format(custoBuffet))
+    println("Custo total: R$ %.2f".format(custoTotal))
+
+}
+fun verificarConflito(
+    auditorio: String,
+    dia: String,
+    horaInicial: Int,
+    horaFinal: Int
+): Boolean {
+    for (evento in agendaEventos) {
+
+        if (
+            evento.auditorio == auditorio &&
+            evento.dia == dia
+        ) {
+
+            if (
+                evento.horaInicial < horaFinal &&
+                evento.horaFinal > horaInicial
+            ) {
+                return true
+            }
+        }
+    }
+ return false
+}
+
+
+fun confirmarReserva(): Boolean {
+
+    while (true) {
+
+        println("Confirmar reserva? (S/N)")
+
+        val resposta = readln()
+
+        when (resposta.trim().uppercase()) {
+
+            "S" -> {
+                println("Reserva efetuada com sucesso.")
+                return true
+            }
+
+            "N" -> {
+                println("Reserva não efetuada.")
+                return false
+            }
+
+            else -> {
+                println("Resposta inválida. Digite S ou N.")
+            }
+        }
     }
 }
+
 //Confirmar reserva? (S/N): S
 //Reserva efetuada com sucesso.
