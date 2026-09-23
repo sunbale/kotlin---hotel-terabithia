@@ -74,7 +74,7 @@ fun inicio() {
         2 -> cadastrarHospedes()
         3 -> eventos()
         4 -> arCondicionado()
-        5 -> AbastecimentoDeAutomoveis()
+        5 -> AbastecimentoDeAutomoveis(nomeFuncionario)
         6 -> relatoriosOperacionais()
         7 -> sairDoHotel()
         else -> erro()

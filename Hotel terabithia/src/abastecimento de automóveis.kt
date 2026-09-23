@@ -1,9 +1,14 @@
 package Hotel
 
-fun AbastecimentoDeAutomoveis() {
+fun AbastecimentoDeAutomoveis(nomeFuncionario: String) {
+
+    val capacidadeTanque = 42
+
     println("===ABASTECIMENTO===")
+
+
     println("Wayne Oil")
-    println("Informe o preço do álcool:")
+
     var alcoolWayne: Double?
 
     while (true) {
@@ -18,66 +23,120 @@ fun AbastecimentoDeAutomoveis() {
     }
 
     var gasolinaWayne: Double?
+
     while (true) {
         println("Informe o preço da gasolina:")
         gasolinaWayne = readln().toDoubleOrNull()
+
         if (gasolinaWayne != null && gasolinaWayne >= 0) {
             break
         }
+
         println("Preço inválido.")
     }
 
-
     var melhorCombustivelWayne: String
-    var custoWayne: Double?
+    var custoWayne: Double
 
     if (alcoolWayne <= gasolinaWayne * 0.70) {
         melhorCombustivelWayne = "Álcool"
-        custoWayne = alcoolWayne * 42
+        custoWayne = alcoolWayne * capacidadeTanque
     } else {
         melhorCombustivelWayne = "Gasolina"
-        custoWayne = gasolinaWayne * 42
+        custoWayne = gasolinaWayne * capacidadeTanque
     }
+
+    println(
+        "Wayne Oil: melhor opção = $melhorCombustivelWayne | " +
+                "Total (42L) = R$ %.2f".format(custoWayne)
+    )
+
+
+
     println("Stark Petrol")
+
     var alcoolStark: Double?
+
     while (true) {
-        println("Informe o preço do alcool:")
+        println("Informe o preço do álcool:")
         alcoolStark = readln().toDoubleOrNull()
+
         if (alcoolStark != null && alcoolStark >= 0) {
             break
         }
+
         println("Preço inválido.")
     }
+
     var gasolinaStark: Double?
-    while(true){
-    println("Informe o preço da gasolina:")
-   gasolinaStark = readln().toDoubleOrNull()
-        if(gasolinaStark != null && gasolinaStark >= 0) {
-        break
+
+    while (true) {
+        println("Informe o preço da gasolina:")
+        gasolinaStark = readln().toDoubleOrNull()
+
+        if (gasolinaStark != null && gasolinaStark >= 0) {
+            break
         }
+
+        println("Preço inválido.")
     }
+
     var melhorCombustivelStark: String
     var custoStark: Double
 
-
     if (alcoolStark <= gasolinaStark * 0.70) {
         melhorCombustivelStark = "Álcool"
-        custoStark = alcoolStark * 42
-    }
-    else {
+        custoStark = alcoolStark * capacidadeTanque
+    } else {
         melhorCombustivelStark = "Gasolina"
-        custoStark = gasolinaStark * 42
+        custoStark = gasolinaStark * capacidadeTanque
     }
+
+    println(
+        "Stark Petrol: melhor opção = $melhorCombustivelStark | " +
+                "Total (42L) = R$ %.2f".format(custoStark)
+    )
+
+
+
     if (custoWayne < custoStark) {
+
         println("1º - Wayne Oil: R$ %.2f".format(custoWayne))
         println("2º - Stark Petrol: R$ %.2f".format(custoStark))
-    } else {
+
+    } else if (custoStark < custoWayne) {
+
         println("1º - Stark Petrol: R$ %.2f".format(custoStark))
         println("2º - Wayne Oil: R$ %.2f".format(custoWayne))
-    }
-    if (custoWayne < custoStark) {
-        println("$nomeFuncionario, é mais barato abastecer com $melhorCombustivelWayne no posto Wayne Oil.")
+
     } else {
-        println("$nomeFuncionario, é mais barato abastecer com $melhorCombustivelStark no posto Stark Petrol.")
+
+        println(
+            "Os dois postos possuem o mesmo custo: R$ %.2f"
+                .format(custoWayne)
+        )
+    }
+
+
+
+    if (custoWayne < custoStark) {
+
+        println(
+            "$nomeFuncionario, é mais barato abastecer com " +
+                    "$melhorCombustivelWayne no posto Wayne Oil."
+        )
+
+    } else if (custoStark < custoWayne) {
+
+        println(
+            "$nomeFuncionario, é mais barato abastecer com " +
+                    "$melhorCombustivelStark no posto Stark Petrol."
+        )
+
+    } else {
+
+        println(
+            "$nomeFuncionario, os dois postos possuem o mesmo custo."
+        )
     }
 }
